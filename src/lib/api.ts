@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_USER_API_BASE || '/api/user';
 
 // Helper to get auth token from cookie
 function getAuthToken(): string | null {
