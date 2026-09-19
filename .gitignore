@@ -30,6 +30,13 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+# Terraform (state files may contain sensitive ARNs; .terraform holds providers)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+infra/stray-table-backup.json
+
 # Supabase
 .supabase
 

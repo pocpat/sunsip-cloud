@@ -16,7 +16,10 @@ export default defineConfig({
 
   server: {
     proxy: {
-      '/api': 'http://localhost:8888'  // netlify dev port
+      // Microservice 1: city experience (weather / cocktail / image / landmark)
+      '/api/city': 'http://localhost:4001',
+      // Microservice 2: user & collection (auth / favourites / preferences)
+      '/api/user': 'http://localhost:4002'
     }
   },
 
