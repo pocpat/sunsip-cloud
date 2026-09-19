@@ -13,6 +13,19 @@ const REGION = process.env.AWS_REGION || 'ap-southeast-2';
 const endpoint = process.env.DYNAMO_ENDPOINT || undefined;
 const TABLE = process.env.DDB_TABLE || 'sunsip-data';
 
+// SAFETY: this script is for LOCAL dev only. Without DYNAMO_ENDPOINT it
+// would silently target REAL AWS using whatever credentials are on the
+// machine (this bit us once — a script-created table outside Terraform).
+if (!process.env.DYNAMO_ENDPOINT) {
+  console.error(
+    'REFUSING to run: DYNAMO_ENDPOINT is not set.\n' +
+      'This script must target DynamoDB-local (http://localhost:8000), never real AWS.\n' +
+      'The real table is created by Terraform (infra/main). Local usage:\n' +
+      '  DYNAMO_ENDPOINT=http://localhost:8000 node scripts/create-table.js'
+  );
+  process.exit(1);
+}
+
 const ddb = new DynamoDBClient({
   region: REGION,
   ...(endpoint ? { endpoint } : {}),
