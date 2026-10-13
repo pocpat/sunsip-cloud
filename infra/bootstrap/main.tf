@@ -31,9 +31,9 @@ resource "aws_s3_bucket" "tfstate" {
   bucket = "sunsip-cloud-tfstate-311141538922"
 
   tags = {
-    Project     = "sunsip-cloud"
-    Purpose     = "terraform-state"
-    ManagedBy   = "terraform-bootstrap"
+    Project   = "sunsip-cloud"
+    Purpose   = "terraform-state"
+    ManagedBy = "terraform-bootstrap"
   }
 }
 
