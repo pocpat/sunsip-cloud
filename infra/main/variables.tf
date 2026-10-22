@@ -34,7 +34,7 @@ variable "service_ports" {
 variable "alert_email" {
   description = "Email that receives SNS alerts (deploy failures, scaling events). Owner confirms the AWS subscription email once."
   type        = string
-  default     = "pocpat@gmail.com" # Elena's own Gmail - no third-party signup
+  default     = "elena@kroupkin.com" # Elena's own address - shown in submission video/report
 }
 
 variable "openweather_api_key" {
