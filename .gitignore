@@ -35,6 +35,8 @@ dist-ssr
 *.tfstate
 *.tfstate.*
 *.tfplan
+# secret values (weather key) — same hygiene as .env; NEVER publish
+*.tfvars
 infra/stray-table-backup.json
 
 # Supabase

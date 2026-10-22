@@ -41,7 +41,11 @@ const PORT = Number(process.env.PORT || 4002);
 const app = express();
 const router = express.Router();
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+// Body cap: saved cards embed the AI city image as a base64 data-URI
+// (~75-250 KB). The express default 100kb cap rejected those as 413 and the
+// FE modal silently stayed open. 1mb keeps typical cards well under the
+// DynamoDB 400 KB per-item ceiling.
+app.use(express.json({ limit: '1mb' }));
 
 type Authed = { id: string; email: string; isAdmin: boolean } | null;
 

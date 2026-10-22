@@ -99,6 +99,8 @@ resource "aws_ecs_task_definition" "city_experience" {
       environment = [
         { name = "PORT", value = "4001" },
         { name = "NODE_ENV", value = "production" },
+        # Server-side key: real OpenWeather when set, the designed mock when empty.
+        { name = "OPENWEATHER_API_KEY", value = var.openweather_api_key },
       ]
 
       logConfiguration = {

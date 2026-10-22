@@ -30,3 +30,15 @@ variable "service_ports" {
     user-collection = 4002
   }
 }
+
+variable "alert_email" {
+  description = "Email that receives SNS alerts (deploy failures, scaling events). Owner confirms the AWS subscription email once."
+  type        = string
+  default     = "pocpat@gmail.com" # Elena's own Gmail - no third-party signup
+}
+
+variable "openweather_api_key" {
+  description = "OpenWeather API key injected into the city-experience task env (server-side only, never in the browser bundle). Value lives in terraform.tfvars (gitignored). Empty = the service serves its designed mock weather."
+  type        = string
+  default     = ""
+}

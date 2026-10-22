@@ -16,10 +16,13 @@ export default defineConfig({
 
   server: {
     proxy: {
-      // Microservice 1: city experience (weather / cocktail / image / landmark)
-      '/api/city': 'http://localhost:4001',
-      // Microservice 2: user & collection (auth / favourites / preferences)
-      '/api/user': 'http://localhost:4002'
+      // Microservice targets are env-driven so the local demo (defaults) and
+      // the AWS platform (ALB URLs) share one dev server. Local four-terminal
+      // demo is UNCHANGED - the defaults are still the local services.
+      // City tier: local tsx server OR the AWS ALB (export CITY_TARGET first)
+      '/api/city': process.env.CITY_TARGET || 'http://localhost:4001',
+      // User tier: local tsx server OR the AWS ALB (export USER_TARGET first)
+      '/api/user': process.env.USER_TARGET || 'http://localhost:4002'
     }
   },
 
