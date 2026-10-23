@@ -34,6 +34,14 @@ resource "aws_ecs_service" "city_experience" {
 
   health_check_grace_period_seconds = 60
 
+  # Phase 5: CodeDeploy blue/green — the controller change FORCES a service
+  # replacement (ECS cannot switch a running service's controller). The service
+  # KEEPS its load_balancer block (the blue target group); the green target
+  # group + listener re-point live in the CodeDeploy deployment group (cicd.tf).
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
+
   tags = merge(local.common_tags, { Name = "${var.project_name}-city-service" })
 }
 
@@ -57,6 +65,11 @@ resource "aws_ecs_service" "user_collection" {
   }
 
   health_check_grace_period_seconds = 60
+
+  # Phase 5: CodeDeploy blue/green — same forced-replacement note as city.
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
 
   tags = merge(local.common_tags, { Name = "${var.project_name}-user-service" })
 }
