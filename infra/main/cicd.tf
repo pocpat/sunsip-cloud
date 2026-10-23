@@ -136,6 +136,15 @@ resource "aws_codedeploy_deployment_group" "city" {
   service_role_arn       = aws_iam_role.codedeploy_service.arn
   deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
 
+  # ECS blue/green REQUIRES the style to be BLUE_GREEN + WITH_TRAFFIC_CONTROL —
+  # the API rejects anything else (InvalidDeploymentStyleException, seen live
+  # 23 Oct). WITH_TRAFFIC_CONTROL = the listener re-point (the production
+  # listener gets updated by CodeDeploy during the cutover).
+  deployment_style {
+    deployment_option = "WITH_TRAFFIC_CONTROL"
+    deployment_type   = "BLUE_GREEN"
+  }
+
   ecs_service {
     cluster_name = aws_ecs_cluster.main.name
     service_name = aws_ecs_service.city_experience.name
@@ -175,6 +184,12 @@ resource "aws_codedeploy_deployment_group" "user" {
   deployment_group_name  = "${var.project_name}-dg-user"
   service_role_arn       = aws_iam_role.codedeploy_service.arn
   deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
+
+  # Same required style as the city group (see its comment).
+  deployment_style {
+    deployment_option = "WITH_TRAFFIC_CONTROL"
+    deployment_type   = "BLUE_GREEN"
+  }
 
   ecs_service {
     cluster_name = aws_ecs_cluster.main.name
