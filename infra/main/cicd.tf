@@ -39,11 +39,18 @@ variable "pipeline_branch" {
   default     = "phase1-microservices"
 }
 
-# ── GitHub connection (one manual click after apply — see runbook P5 row) ─────
-resource "aws_codestarconnections_connection" "github" {
-  name          = "${var.project_name}-github"
-  provider_type = "GitHub"
-  tags          = merge(local.common_tags, { Name = "${var.project_name}-github-connection" })
+# ── GitHub connection — CONSOLE-OWNED (see P5.1 notes) ────────────────────────
+# Elena created + authorized a GitHub connection BY HAND in the console
+# (connections named "pocpat"), which is BETTER than the Terraform-managed
+# form: a connection created by hand is NOT in Terraform state, therefore it
+# SURVIVES teardown + every rebuild — no per-session re-auth click. The ARN is
+# a plain identifier (not a credential), so it can live in code. If the manual
+# app scope ever misses the sunsip-cloud repo, re-run the connection's
+# "Update pending connection" flow in the console and paste the new ARN here.
+variable "github_connection_arn" {
+  description = "Console-created CodeStar connection (GitHub), authorized manually once; survives teardowns."
+  type        = string
+  default     = "arn:aws:codeconnections:ap-southeast-2:311141538922:connection/7e6b6ce6-ec47-4020-a20f-066947db0434"
 }
 
 # ── Green (replacement) target groups — same LB, same protocol/health as blue ─
@@ -488,7 +495,7 @@ resource "aws_codepipeline" "main" {
       output_artifacts = ["SourceArtifact"]
 
       configuration = {
-        ConnectionArn    = aws_codestarconnections_connection.github.arn
+        ConnectionArn    = var.github_connection_arn
         FullRepositoryId = "pocpat/sunsip-cloud"
         BranchName       = var.pipeline_branch
       }
@@ -615,11 +622,6 @@ resource "aws_sns_topic_policy" "alerts_event_publish" {
 }
 
 # ── Outputs for console-free verification + the runbook ───────────────────────
-output "github_connection_arn" {
-  description = "Pending until the one manual console authorization (Update pending connection)."
-  value       = aws_codestarconnections_connection.github.arn
-}
-
 output "codebuild_project_names" {
   value = [aws_codebuild_project.build["city"].name, aws_codebuild_project.build["user"].name]
 }
