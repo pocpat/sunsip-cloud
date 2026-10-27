@@ -50,7 +50,7 @@ variable "pipeline_branch" {
 variable "github_connection_arn" {
   description = "Console-created CodeStar connection (GitHub), authorized manually once; survives teardowns."
   type        = string
-  default     = "arn:aws:codeconnections:ap-southeast-2:311141538922:connection/7e6b6ce6-ec47-4020-a20f-066947db0434"
+  default     = "arn:aws:codeconnections:ap-southeast-2:311141538922:connection/ee4711c5-2087-49bd-a5a5-49a9a04584b5" # the Available one (verified 27 Oct; GitHub app scope = sunsip-cloud + BigO-game)
 }
 
 # ── Green (replacement) target groups — same LB, same protocol/health as blue ─
