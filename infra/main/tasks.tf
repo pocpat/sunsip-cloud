@@ -101,6 +101,13 @@ resource "aws_ecs_task_definition" "city_experience" {
         { name = "NODE_ENV", value = "production" },
         # Server-side key: real OpenWeather when set, the designed mock when empty.
         { name = "OPENWEATHER_API_KEY", value = var.openweather_api_key },
+        # Real IMAGE + LANDMARK chain (27 Oct fix): keys empty = designed mock
+        # fallbacks keep serving; values live in terraform.tfvars (gitignored).
+        { name = "IMAGEROUTER_API_KEY", value = var.imagerouter_api_key },
+        { name = "CLOUDFLARE_API_KEY", value = var.cloudflare_api_key },
+        { name = "CLOUDFLARE_ACCOUNT_ID", value = var.cloudflare_account_id },
+        { name = "OPENROUTER_API_KEY", value = var.openrouter_api_key },
+        { name = "VITE_OPENROUTER_TEXT_MODEL", value = var.openrouter_text_model },
       ]
 
       logConfiguration = {
