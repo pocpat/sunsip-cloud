@@ -340,11 +340,15 @@ locals {
             "printf '{\"ImageURI\":\"%s\"}' \"$REPO_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION\" > imageDetail.json",
             "aws ecs describe-task-definition --task-definition ${var.project_name}-city-experience --query 'taskDefinition' --output json > full.json",
             "python3 -c \"import json;d=json.load(open('full.json'));keep=('family','networkMode','containerDefinitions','requiresCompatibilities','cpu','memory','executionRoleArn','taskRoleArn','volumes','placementConstraints','runtimePlatform');out={k:d[k] for k in keep if k in d};out['containerDefinitions'][0]['image']='<IMAGE1_NAME>';json.dump(out,open('taskdef.json','w'))\"",
+            # Ship the appspec from the build's own artifact: the CodeDeployToECS
+            # action has a 3 MB artifact cap and the repo zip (3.36 MB with
+            # fonts/images) exceeds it - live failure evidence 28 Oct 14:02.
+            "cp deploy/city-experience/appspec.yaml appspec.yaml",
           ]
         }
       }
       artifacts = {
-        files = ["taskdef.json", "imageDetail.json"]
+        files = ["taskdef.json", "imageDetail.json", "appspec.yaml"]
       }
     })
     user = yamlencode({
@@ -368,11 +372,13 @@ locals {
             "printf '{\"ImageURI\":\"%s\"}' \"$REPO_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION\" > imageDetail.json",
             "aws ecs describe-task-definition --task-definition ${var.project_name}-user-collection --query 'taskDefinition' --output json > full.json",
             "python3 -c \"import json;d=json.load(open('full.json'));keep=('family','networkMode','containerDefinitions','requiresCompatibilities','cpu','memory','executionRoleArn','taskRoleArn','volumes','placementConstraints','runtimePlatform');out={k:d[k] for k in keep if k in d};out['containerDefinitions'][0]['image']='<IMAGE1_NAME>';json.dump(out,open('taskdef.json','w'))\"",
+            # Same 3 MB artifact-cap fix as the city buildspec above.
+            "cp deploy/user-collection/appspec.yaml appspec.yaml",
           ]
         }
       }
       artifacts = {
-        files = ["taskdef.json", "imageDetail.json"]
+        files = ["taskdef.json", "imageDetail.json", "appspec.yaml"]
       }
     })
   }
@@ -573,13 +579,17 @@ resource "aws_codepipeline" "main" {
       version   = "1"
       run_order = 1
 
-      input_artifacts = ["SourceArtifact", "CityBuild"]
+      input_artifacts = ["CityBuild"] # repo zip dropped: over the 3 MB CodeDeployToECS artifact cap
 
       configuration = {
-        ApplicationName                = aws_codedeploy_app.city.name
-        DeploymentGroupName            = aws_codedeploy_deployment_group.city.deployment_group_name
-        AppSpecTemplateArtifact        = "SourceArtifact"
-        AppSpecTemplatePath            = "deploy/city-experience/appspec.yaml"
+        ApplicationName     = aws_codedeploy_app.city.name
+        DeploymentGroupName = aws_codedeploy_deployment_group.city.deployment_group_name
+        # AppSpec from the BUILD artifact, not the repo zip: CodeDeployToECS
+        # rejects artifacts over 3 MB and the repo zip is 3.36 MB (AWS docs
+        # troubleshooting; live Deploy-stage failure 28 Oct). Build emits
+        # appspec.yaml at its root (see buildspec post_build).
+        AppSpecTemplateArtifact        = "CityBuild"
+        AppSpecTemplatePath            = "appspec.yaml"
         TaskDefinitionTemplateArtifact = "CityBuild"
         TaskDefinitionTemplatePath     = "taskdef.json"
         Image1ArtifactName             = "CityBuild"
@@ -595,13 +605,14 @@ resource "aws_codepipeline" "main" {
       version   = "1"
       run_order = 1
 
-      input_artifacts = ["SourceArtifact", "UserBuild"]
+      input_artifacts = ["UserBuild"] # repo zip dropped: over the 3 MB CodeDeployToECS artifact cap
 
       configuration = {
-        ApplicationName                = aws_codedeploy_app.user.name
-        DeploymentGroupName            = aws_codedeploy_deployment_group.user.deployment_group_name
-        AppSpecTemplateArtifact        = "SourceArtifact"
-        AppSpecTemplatePath            = "deploy/user-collection/appspec.yaml"
+        ApplicationName     = aws_codedeploy_app.user.name
+        DeploymentGroupName = aws_codedeploy_deployment_group.user.deployment_group_name
+        # Same 3 MB artifact-cap fix as the city deploy action above.
+        AppSpecTemplateArtifact        = "UserBuild"
+        AppSpecTemplatePath            = "appspec.yaml"
         TaskDefinitionTemplateArtifact = "UserBuild"
         TaskDefinitionTemplatePath     = "taskdef.json"
         Image1ArtifactName             = "UserBuild"
