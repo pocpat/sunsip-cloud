@@ -293,14 +293,19 @@ resource "aws_iam_role_policy" "codebuild_policy" {
         Sid      = "DescribeCityTaskDef"
         Effect   = "Allow"
         Action   = ["ecs:DescribeTaskDefinition"]
-        Resource = "arn:aws:ecs:*:*:task-definition/${var.project_name}-city-experience*"
+        Resource = "*"
+        # DescribeTaskDefinition on a FAMILY (no revision) is authorized against
+        # '*' — the API picks the latest revision AFTER authz, so family-scoped
+        # resource ARNs are never matched (live AccessDenied evidence 28 Oct,
+        # 00:36 UTC, "on resource: *" in CodeBuild). Read-only action; the
+        # family name rides in the request itself.
       }
       ] : [
       {
         Sid      = "DescribeUserTaskDef"
         Effect   = "Allow"
         Action   = ["ecs:DescribeTaskDefinition"]
-        Resource = "arn:aws:ecs:*:*:task-definition/${var.project_name}-user-collection*"
+        Resource = "*" # family-level describe = '*' per IAM (see city statement)
       }
     ])
   })
@@ -465,9 +470,15 @@ resource "aws_iam_role_policy" "pipeline_policy" {
         Resource = "*"
       },
       {
-        Sid      = "TaskDefRevision"
+        Sid      = "DescribeTaskDef"
         Effect   = "Allow"
-        Action   = ["ecs:DescribeTaskDefinition", "ecs:RegisterTaskDefinition"]
+        Action   = ["ecs:DescribeTaskDefinition"]
+        Resource = "*" # family-level describe = '*' per IAM (same quirk as CodeBuild)
+      },
+      {
+        Sid      = "RegisterTaskDef"
+        Effect   = "Allow"
+        Action   = ["ecs:RegisterTaskDefinition"]
         Resource = "arn:aws:ecs:*:*:task-definition/${var.project_name}-*"
       },
       {
