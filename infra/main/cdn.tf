@@ -22,6 +22,16 @@ data "aws_cloudfront_cache_policy" "optimized" {
   name = "Managed-CachingOptimized"
 }
 
+# Dynamic API paths: queries must NEVER be cached with a query-string-blind
+# cache key. CachingOptimized (used here by mistake) puts lat/lon etc. OUTSIDE
+# the key: the first /weather response (the mock Rio card, Oct 27 20:57 NZ)
+# was frozen at the edge and served for EVERY city for 24 h - live evidence
+# 28 Oct: two different lat/lon requests returned the identical payload.
+# It also caches /api/user/* GETs that vary by JWT cookie (cross-user risk).
+data "aws_cloudfront_cache_policy" "api_disabled" {
+  name = "Managed-CachingDisabled"
+}
+
 data "aws_cloudfront_origin_request_policy" "all_viewer" {
   name = "Managed-AllViewerExceptHostHeader"
 }
@@ -88,24 +98,26 @@ resource "aws_cloudfront_distribution" "main" {
   #                      route and what the JWT cookie needs to arrive).
 
   ordered_cache_behavior {
-    path_pattern             = "/api/city/*"
-    target_origin_id         = "alb-city"
-    viewer_protocol_policy   = "redirect-to-https"
-    allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods           = ["GET", "HEAD"]
-    compress                 = false
-    cache_policy_id          = data.aws_cloudfront_cache_policy.optimized.id
+    path_pattern           = "/api/city/*"
+    target_origin_id       = "alb-city"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods         = ["GET", "HEAD"]
+    compress               = false
+    # CachingDisabled: weather varies by lat/lon (cache key must see queries).
+    cache_policy_id          = data.aws_cloudfront_cache_policy.api_disabled.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
   }
 
   ordered_cache_behavior {
-    path_pattern             = "/api/user/*"
-    target_origin_id         = "alb-user"
-    viewer_protocol_policy   = "redirect-to-https"
-    allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods           = ["GET", "HEAD"]
-    compress                 = false
-    cache_policy_id          = data.aws_cloudfront_cache_policy.optimized.id
+    path_pattern           = "/api/user/*"
+    target_origin_id       = "alb-user"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods         = ["GET", "HEAD"]
+    compress               = false
+    # CachingDisabled: JWT-cookie-dependent responses must never be shared.
+    cache_policy_id          = data.aws_cloudfront_cache_policy.api_disabled.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
   }
 
