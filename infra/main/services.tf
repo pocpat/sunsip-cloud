@@ -34,6 +34,13 @@ resource "aws_ecs_service" "city_experience" {
 
   health_check_grace_period_seconds = 60
 
+  # The task definition ownership note: see the user service below — Terraform
+  # registers the bootstrap def; the pipeline (CodeDeploy) rolls later revisions;
+  # this pointer is ignored to avoid drift-fighting.
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
   # Phase 5: CodeDeploy blue/green — the controller change FORCES a service
   # replacement (ECS cannot switch a running service's controller). The service
   # KEEPS its load_balancer block (the blue target group); the green target
@@ -65,6 +72,16 @@ resource "aws_ecs_service" "user_collection" {
   }
 
   health_check_grace_period_seconds = 60
+
+  # The task definition now has TWO owners by design: Terraform registers the
+  # BOOTSTRAP revision (image = :latest, env incl. the tfvars keys); the PIPELINE
+  # (CodeDeploy blue/green) rolls every later revision. The service's pointer is
+  # therefore ignored here — a pipeline-deployed revision (say :11) must never
+  # drift-fight Terraform (the ECS API refuses task-def updates on CODE_DEPLOY
+  # services anyway: "Use AWS CodeDeploy to trigger a new deployment").
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   # Phase 5: CodeDeploy blue/green — same forced-replacement note as city.
   deployment_controller {
