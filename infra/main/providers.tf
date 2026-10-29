@@ -14,6 +14,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    # Phase 6 (LO1): the Google side of the multi-cloud codebase — the GCS
+    # DynamoDB-backup bucket in google_backup.tf. Plan/validate offline
+    # (count=0 code-path); live deploy the moment a card-free billing path
+    # (college credits / assigned project) is resolved.
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 6.0.0"
+    }
   }
 
   backend "s3" {
