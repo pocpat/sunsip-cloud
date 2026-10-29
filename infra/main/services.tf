@@ -41,7 +41,7 @@ resource "aws_ecs_service" "city_experience" {
   # CODE_DEPLOY services (only CodeDeploy may); blue/green wiring is
   # CodeDeploy-owned, so Terraform must ignore it or UpdateService fails.
   lifecycle {
-    ignore_changes = [task_definition, load_balancers]
+    ignore_changes = [task_definition, load_balancer]
   }
 
   # Race fix (29 Oct): this CODE_DEPLOY service validates that its target
@@ -93,7 +93,7 @@ resource "aws_ecs_service" "user_collection" {
   # drift-fight Terraform (the ECS API refuses task-def updates on CODE_DEPLOY
   # services anyway: "Use AWS CodeDeploy to trigger a new deployment").
   lifecycle {
-    ignore_changes = [task_definition, load_balancers]
+    ignore_changes = [task_definition, load_balancer]
   }
 
   # Phase 5: CodeDeploy blue/green — same forced-replacement note as city.
