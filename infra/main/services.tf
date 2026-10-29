@@ -34,12 +34,19 @@ resource "aws_ecs_service" "city_experience" {
 
   health_check_grace_period_seconds = 60
 
-  # The task definition ownership note: see the user service below — Terraform
-  # registers the bootstrap def; the pipeline (CodeDeploy) rolls later revisions;
-  # this pointer is ignored to avoid drift-fighting.
+# The task definition ownership note: see the user service below — Terraform
+# registers the bootstrap def; the pipeline (CodeDeploy) rolls later revisions;
+# this pointer is ignored to avoid drift-fighting.
   lifecycle {
     ignore_changes = [task_definition]
   }
+
+  # Race fix (29 Oct): this CODE_DEPLOY service validates that its target
+  # group is already attached to a listener at CreateService time — both
+  # resources depend on the same TG, so creation order is a race. Anchor the
+  # service to the LISTENER so the attachment always exists first (live
+  # InvalidParameterException "does not have an associated load balancer").
+  depends_on = [aws_lb_listener.city_experience_http]
 
   # Phase 5: CodeDeploy blue/green — the controller change FORCES a service
   # replacement (ECS cannot switch a running service's controller). The service
@@ -72,6 +79,9 @@ resource "aws_ecs_service" "user_collection" {
   }
 
   health_check_grace_period_seconds = 60
+
+  # Same listener-attachment race fix as the city service.
+  depends_on = [aws_lb_listener.user_collection_http]
 
   # The task definition now has TWO owners by design: Terraform registers the
   # BOOTSTRAP revision (image = :latest, env incl. the tfvars keys); the PIPELINE

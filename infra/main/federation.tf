@@ -85,12 +85,16 @@ resource "aws_iam_role" "saml" {
     ]
   })
 
-  inline_policy {
-    name   = "${var.project_name}-${each.key}-policy"
-    policy = each.value.json
-  }
-
   tags = merge(local.common_tags, { Name = "${var.project_name}-${each.key}" })
+}
+
+# Policies as separate managed attachments (inline_policy is deprecated by
+# provider v6 — this form also keeps the role's policy audit-visible).
+resource "aws_iam_role_policy" "saml" {
+  for_each = aws_iam_role.saml
+  name     = "${var.project_name}-${each.key}-policy"
+  role     = each.value.id
+  policy   = each.key == "DevOpsEngineer" ? data.aws_iam_policy_document.devops_engineer.json : data.aws_iam_policy_document.read_only_auditor.json
 }
 
 # ── Outputs = the exact strings the Entra portal claim needs ─────────────────
