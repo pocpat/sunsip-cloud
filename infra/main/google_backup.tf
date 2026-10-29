@@ -40,7 +40,7 @@ variable "google_backup_credentials_file" {
 }
 
 variable "google_backup_region" {
-  description = "GCS location. europe-north1 keeps EU-residency for personal data; asia-southeast2 matches Sydney residency if required."
+  description = "GCS location. Deliberate DR choice: a distant, cheap region (europe-north1/Finland) so the copy survives even a regional catastrophe - on top of cross-PROVIDER separation (AWS Sydney -> Google). australia-southeast1 (Sydney) is the low-latency-restore alternative, but shares the primary's metro blast radius."
   type        = string
   default     = "europe-north1"
 }
