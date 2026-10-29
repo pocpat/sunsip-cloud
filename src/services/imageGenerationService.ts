@@ -64,9 +64,9 @@ export async function generateCityImage(
 
     addBreadcrumb(`Using prompt: ${prompt}`, 'image-generation');
 
-    // Step 3: Ask the backend function to generate the image
+    // Step 3: Ask the city-experience microservice to generate the image
     const response = await axios.post(
-      '/api/generate-image',
+      '/api/city/generate-image',
       { prompt },
       { timeout: GENERATE_IMAGE_TIMEOUT_MS }
     );

@@ -1,0 +1,56 @@
+# Local dev stack: DynamoDB-local + both microservices.
+# The frontend keeps running with plain `npm run dev` (Vite) — it proxies
+# /api to these services (see vite.config.ts).
+#
+#   docker compose up --build
+#
+# DynamoDB-local is FREE and runs entirely on your machine — no AWS account,
+# no spend. The same single-table design is created by Terraform in Phase 2.
+
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: sunsip-dynamodb
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-inMemory"]
+    # -inMemory: data resets when the stack stops. Use a volume if you want
+    # saved combinations to survive restarts:
+    # volumes:
+    #   - dynamodb-data:/home/dynamodblocal/data
+    # command: ["-jar", "DynamoDBLocal.jar", "-dbPath", "/home/dynamodblocal/data"]
+
+  user-collection:
+    build: ./services/user-collection
+    container_name: sunsip-user-collection
+    ports:
+      - "4002:4002"
+    environment:
+      PORT: "4002"
+      DYNAMO_ENDPOINT: "http://dynamodb:8000"
+      DDB_TABLE: "sunsip-data"
+      AWS_REGION: "ap-southeast-2"
+      JWT_SECRET: "sunsip-dev-secret-change-in-production"
+      # Real keys are injected from the repo-root .env (gitignored) — the
+      # password-reset email + flows work locally exactly like production.
+      SMTP_USER: "${SMTP_USER}"
+      SMTP_PASS: "${SMTP_PASS}"
+    depends_on:
+      - dynamodb
+
+  city-experience:
+    build: ./services/city-experience
+    container_name: sunsip-city-experience
+    ports:
+      - "4001:4001"
+    environment:
+      PORT: "4001"
+      OPENWEATHER_API_KEY: "${VITE_OPENWEATHER_API_KEY}"
+      IMAGEROUTER_API_KEY: "${IMAGEROUTER_API_KEY}"
+      CLOUDFLARE_API_KEY: "${CLOUDFLARE_API_KEY}"
+      CLOUDFLARE_ACCOUNT_ID: "${CLOUDFLARE_ACCOUNT_ID}"
+      VITE_OPENROUTER_API_KEY: "${VITE_OPENROUTER_API_KEY}"
+      VITE_OPENROUTER_TEXT_MODEL: "${VITE_OPENROUTER_TEXT_MODEL}"
+
+volumes:
+  dynamodb-data:

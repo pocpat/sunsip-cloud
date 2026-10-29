@@ -30,6 +30,15 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+# Terraform (state files may contain sensitive ARNs; .terraform holds providers)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+# secret values (weather key) — same hygiene as .env; NEVER publish
+*.tfvars
+infra/stray-table-backup.json
+
 # Supabase
 .supabase
 
