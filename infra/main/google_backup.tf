@@ -56,7 +56,11 @@ variable "google_backup_retention_days" {
 # AWS side stays live. The moment she/college resolves the billing path, the
 # same code deploys for real.
 locals {
-  gcp_live = var.google_backup_project_id != "" && var.google_backup_credentials_file != ""
+  # LIVE = a target project is set (ADC supplies identity); no credentials
+  # FILE is required - `gcloud auth application-default login` stores system
+  # ADC, and the provider resolves it automatically.
+  gcp_live = var.google_backup_project_id != ""
+  _unused  = var.google_backup_credentials_file # kept for tfvars back-compat
 }
 
 # Config-less provider: with count=0 on every resource (the card-gated case),

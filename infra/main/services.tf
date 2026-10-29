@@ -34,11 +34,14 @@ resource "aws_ecs_service" "city_experience" {
 
   health_check_grace_period_seconds = 60
 
-# The task definition ownership note: see the user service below — Terraform
-# registers the bootstrap def; the pipeline (CodeDeploy) rolls later revisions;
-# this pointer is ignored to avoid drift-fighting.
+  # The task definition ownership note: see the user service below — Terraform
+  # registers the bootstrap def; the pipeline (CodeDeploy) rolls later revisions;
+  # this pointer is ignored to avoid drift-fighting.
+  # load_balancers added (29 Oct): ECS forbids updating load balancers on
+  # CODE_DEPLOY services (only CodeDeploy may); blue/green wiring is
+  # CodeDeploy-owned, so Terraform must ignore it or UpdateService fails.
   lifecycle {
-    ignore_changes = [task_definition]
+    ignore_changes = [task_definition, load_balancers]
   }
 
   # Race fix (29 Oct): this CODE_DEPLOY service validates that its target
@@ -90,7 +93,7 @@ resource "aws_ecs_service" "user_collection" {
   # drift-fight Terraform (the ECS API refuses task-def updates on CODE_DEPLOY
   # services anyway: "Use AWS CodeDeploy to trigger a new deployment").
   lifecycle {
-    ignore_changes = [task_definition]
+    ignore_changes = [task_definition, load_balancers]
   }
 
   # Phase 5: CodeDeploy blue/green — same forced-replacement note as city.
