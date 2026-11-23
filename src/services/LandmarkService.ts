@@ -5,7 +5,7 @@ import { captureError, addBreadcrumb } from '../lib/sentry';
 // This function now calls YOUR backend, not OpenRouter's.
 async function getLandmarkSuggestionFromBackend(city: string, country: string): Promise<string | null> {
   try {
-    const response = await axios.post('/api/generate-landmark', { city, country });
+    const response = await axios.post('/api/city/landmark', { city, country });
     return response.data.landmark;
   } catch (error) {
     // The backend will handle the errors, but we can log it here too.

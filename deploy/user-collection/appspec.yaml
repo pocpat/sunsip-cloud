@@ -1,0 +1,11 @@
+# CodeDeploy AppSpec (ECS compute platform) — user-collection.
+# <TASK_DEFINITION> placeholder resolved by the CodeDeployToECS pipeline action.
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: <TASK_DEFINITION>
+        LoadBalancerInfo:
+          ContainerName: "user-collection"
+          ContainerPort: 4002

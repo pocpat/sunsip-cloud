@@ -19,9 +19,9 @@ const MainScroller: React.FC<MainScrollerProps> = ({ setNavSource }) => {
       // Small delay to ensure content is fully rendered
       const scrollTimeout = setTimeout(() => {
         if (scrollContainerRef.current) {
-          // Scroll to 75vh to bring results to top of screen
+          // Scroll exactly one full page so the results rise from the very bottom edge
           scrollContainerRef.current.scrollTo({
-            top: window.innerHeight * 0.75,
+            top: window.innerHeight,
             behavior: 'smooth',
           });
         }
@@ -62,8 +62,8 @@ const MainScroller: React.FC<MainScrollerProps> = ({ setNavSource }) => {
       
       const container = scrollContainerRef.current;
       const scrollTop = container.scrollTop;
-      const previewLimit = window.innerHeight * 0.25; // 25vh
-      const resultsLockPosition = window.innerHeight * 0.75; // 75vh
+      const previewLimit = 0; // nothing peeks above the fold — the teaser is gone
+      const resultsLockPosition = window.innerHeight; // one full page
       
       // If we have results data and loading is complete
       if (weatherData && cocktailData && !isLoading) {
@@ -104,14 +104,14 @@ const MainScroller: React.FC<MainScrollerProps> = ({ setNavSource }) => {
       className={`h-full custom-scrollbar ${shouldBeScrollable ? 'overflow-y-scroll' : 'overflow-hidden'}`}
       style={{ scrollBehavior: 'smooth' }}
     >
-      {/* Landing Section - 75vh - This is the initial view */}
-      <div className="h-[75vh]">
+      {/* Landing Section - full screen - This is the initial view */}
+      <div className="h-screen">
         <LandingPage setNavSource={setNavSource} resetCounter={resetCounter} />
       </div>
       
       {/* Results Section - Dynamic height based on data availability */}
       <div 
-        className={resultsReady ? 'min-h-screen' : 'h-[25vh]'}
+        className={resultsReady ? 'min-h-screen' : 'h-0'}
         style={{ backgroundColor: '#819077' }}
       >
         <ResultsPage />

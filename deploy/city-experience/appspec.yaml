@@ -1,0 +1,13 @@
+# CodeDeploy AppSpec (ECS compute platform) — city-experience.
+# <TASK_DEFINITION> is a placeholder: the CodeDeployToECS pipeline action
+# replaces it with the ARN of the task-definition revision it generates
+# (taskdef.json from the build artifact, image resolved from imageDetail.json).
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: <TASK_DEFINITION>
+        LoadBalancerInfo:
+          ContainerName: "city-experience"
+          ContainerPort: 4001
