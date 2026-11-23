@@ -39,6 +39,11 @@ dist-ssr
 *.tfvars
 infra/stray-table-backup.json
 
+# MFA / VPN secrets — device seeds, QR PNGs, client certs. NEVER publish
+mfa-qr.png
+mfa-*.txt
+*.ovpn
+
 # Supabase
 .supabase
 
