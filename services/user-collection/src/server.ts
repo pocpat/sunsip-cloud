@@ -640,7 +640,7 @@ router.get('/system-settings', async (req, res) => {
 app.get('/healthz', async (_req, res) => {
   try {
     await getItem('SETTINGS', 'GLOBAL'); // cheap round-trip proof
-    return res.status(200).json({ ok: true, table: TABLE });
+    return res.status(200).json({ ok: true, table: TABLE, buildLabel: "release-3"  });
   } catch (error) {
     return res.status(500).json({ ok: false, error: (error as Error).message });
   }
