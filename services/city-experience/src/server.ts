@@ -104,7 +104,7 @@ app.post('/api/city/landmark', async (req, res) => {
 });
 
 app.get('/healthz', (_req, res) => {
-  return res.status(200).json({ ok: true, service: 'city-experience' });
+  return res.status(200).json({ ok: true, service: 'city-experience', buildLabel: "release-2" });
 });
 
 app.listen(PORT, () => {
